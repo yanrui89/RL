@@ -1,23 +1,7 @@
 import numpy as np
 import env
 import random
-
-def init_Q(h, l):
-    Q = np.zeros((h, l, 4))
-    return Q
-
-def epsilon_greedy(epsilon, Q, curr_state):
-    dice = random.uniform(0,1)
-    if dice < epsilon:
-        act = random.randint(0,3)
-        #print(act)
-    else:
-        print(curr_state)
-        q_curr_state = Q[curr_state[0], curr_state[1],:]
-        #print(q_curr_state.shape)
-        act = np.argmax(q_curr_state)
-
-    return act
+import algo
 
 
 
@@ -31,38 +15,44 @@ def main():
     height = 5
     length = 10
     gamma = 0.99
-    alpha = 0.1
+    alpha = 0.2
     cliff = env.cliff_env(length,height)
-    print(cliff.curr_state)
+    policy = algo.sarsa(height, length)
+    #print(cliff.curr_state)
     ## Implement SARSA
-    Q = init_Q(height, length)
-    #print(Q)
-    epsilon = 0.01
-    for i in range(100000):
+    epsilon = 0.2
+    while policy.converge == 0:
         curr_state = cliff.curr_state
-        curr_act = epsilon_greedy(epsilon, Q, curr_state)
-        
+        curr_act = policy.epsilon_greedy(epsilon, curr_state)
         act_word = key[curr_act]
         cliff.action(act_word)
         cliff.check_endstate()
         curr_reward = cliff.curr_reward
         next_state = cliff.curr_state
-        next_act = epsilon_greedy(epsilon, Q, next_state)
+        next_act = policy.epsilon_greedy(epsilon, next_state)
 
         # Update Q values
-        td_error = curr_reward + gamma* Q[next_state[0], next_state[1],next_act] - Q[curr_state[0], curr_state[1],curr_act]
-        update = Q[curr_state[0], curr_state[1],curr_act] + alpha*td_error
-        Q[curr_state[0], curr_state[1],curr_act] = update
+        policy.update_sarsa(curr_reward, gamma, next_state, next_act, curr_state, curr_act, alpha)
 
         #check if episode ended
         chk_end = cliff.end
         if chk_end == 1:
             print(f'episode ended with {cliff.acc_reward} accumulated reward')
             cliff.reset()
-    print(Q)
-    print(Q[0,0,:])
-    print(Q[-1,-1,:])
-    print(cliff.visited_states)
+
+        policy.chk_converge()
+
+
+    #print(policy.Q)
+    #print(policy.Q[0,0,:])
+    #print(policy.Q[-1,-1,:])
+    #print(cliff.visited_states)
+
+
+    #Plot the actual path 
+    bp = policy.find_best_path()
+    print(bp)
+
 
 
 

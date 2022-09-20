@@ -37,7 +37,7 @@ class cliff_env:
 
     def action(self, act):
         x = self.curr_state[0]
-        print(x)
+        #print(x)
         y = self.curr_state[1]
         if act == "left":
             if y != 0:
@@ -47,8 +47,8 @@ class cliff_env:
                 self.curr_state = np.array([x, y+1])
         elif act == "up":
             if x != self.height -1:
-                print(self.height - 1)
-                print('I am in')
+                #print(self.height - 1)
+                #print('I am in')
                 self.curr_state = np.array([x+1, y])
         elif act == "down":
             if x != 0:
