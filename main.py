@@ -2,6 +2,7 @@ import numpy as np
 import env
 import random
 import algo
+import parsers
 
 
 
@@ -12,15 +13,23 @@ def main():
         2 : 'right',
         3 : 'down'
     }
-    height = 5
-    length = 10
-    gamma = 0.99
-    alpha = 0.2
+
+    args = parsers.parse_args()
+
+    height = args.height
+    length = args.length
+    gamma = args.gamma
+    alpha = args.alpha
+    epsilon = args.epsilon
+    algo_name = args.algo_name
+
     cliff = env.cliff_env(length,height)
-    policy = algo.sarsa(height, length)
-    #print(cliff.curr_state)
-    ## Implement SARSA
-    epsilon = 0.2
+
+    if algo_name == 'sarsa':
+        policy = algo.sarsa(height, length)
+    elif algo_name == 'qlearn':
+        policy = algo.q_learning(height, length)
+
     while policy.converge == 0:
         curr_state = cliff.curr_state
         curr_act = policy.epsilon_greedy(epsilon, curr_state)
@@ -29,7 +38,11 @@ def main():
         cliff.check_endstate()
         curr_reward = cliff.curr_reward
         next_state = cliff.curr_state
-        next_act = policy.epsilon_greedy(epsilon, next_state)
+
+        if algo_name == 'sarsa':
+            next_act = policy.epsilon_greedy(epsilon, next_state)
+        elif algo_name == 'qlearn':
+            next_act = policy.greedy(next_state)
 
         # Update Q values
         policy.update_sarsa(curr_reward, gamma, next_state, next_act, curr_state, curr_act, alpha)
@@ -52,15 +65,6 @@ def main():
     #Plot the actual path 
     bp = policy.find_best_path()
     print(bp)
-
-
-
-
-
-
-
-
-
 
 
 

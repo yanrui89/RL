@@ -46,4 +46,22 @@ class sarsa:
         self.prevQ = copy.deepcopy(self.Q)
         if self.max_diff_Q < 1e-15:
             self.converge = 1
-        
+
+class q_learning(sarsa):
+
+    def __init__(self,h, l):
+        super().__init__(h,l)
+
+    def greedy(self, curr_state):
+
+        print(curr_state)
+        q_curr_state = self.Q[curr_state[0], curr_state[1],:]
+        #print(q_curr_state.shape)
+        act = np.argmax(q_curr_state)
+
+        return act
+
+    def update_qlearn(self, curr_reward, gamma, next_state, next_act, curr_state, curr_act, alpha):
+        td_error = curr_reward + gamma* self.Q[next_state[0], next_state[1],next_act] - self.Q[curr_state[0], curr_state[1],curr_act]
+        update = self.Q[curr_state[0], curr_state[1],curr_act] + alpha*td_error
+        self.Q[curr_state[0], curr_state[1],curr_act] = update
