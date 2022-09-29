@@ -1,6 +1,8 @@
 import numpy as np
 import random
 import copy
+import NN
+import torch
 
 class sarsa:
     def __init__(self, h, l):
@@ -65,3 +67,60 @@ class q_learning(sarsa):
         td_error = curr_reward + gamma* self.Q[next_state[0], next_state[1],next_act] - self.Q[curr_state[0], curr_state[1],curr_act]
         update = self.Q[curr_state[0], curr_state[1],curr_act] + alpha*td_error
         self.Q[curr_state[0], curr_state[1],curr_act] = update
+        
+        
+class DQN:
+    
+    def __init__(self):
+
+        self.q = NN.MLP(2,4)
+        self.qtarget = NN.MLP(2,4)
+        self.repmem = NN.memrep()
+        self.optim = torch.optim.SGD(self.q.parameters(), lr = 0.01,momentum = 0.9)
+        self.optim.zero_grad()
+        
+    def learnq(self,batch):
+        
+        num_in_rep = self.repmem.chk_num_sample()
+        min_batch = np.min(np.array([batch, num_in_rep]))
+        
+        #sample sarsa from rep buffer
+        
+        samples = self.repmem.draw_sample(min_batch)
+        
+        sample_torch = torch.tensor(np.array(samples))
+        
+        
+        
+        return
+        
+    def epsilon_greedy(self,epsilon, curr_state):
+        dice = random.uniform(0,1)
+        if dice < epsilon:
+            act = random.randint(0,3)
+            #print(act)
+        else:
+            print(curr_state)
+            with torch.no_grad():
+                q_curr_state = self.q(torch.tensor(np.array([curr_state])))
+            #print(q_curr_state.shape)
+                act = np.argmax(q_curr_state)
+        return act
+    
+    def greedy(self,curr_state):
+        
+        print(curr_state)
+        with torch.no_grad():
+            q_curr_state = self.qtarget(torch.tensor(np.array([curr_state])))
+            #print(q_curr_state.shape)
+            act = np.argmax(q_curr_state)
+        
+        return act
+    
+    def upload_mem(self, s,a,r,s1,a1):
+        self.repmem.push(s,a,r,s1,a1)
+        
+        
+        
+        
+    
