@@ -79,8 +79,9 @@ class DQN:
         self.optim = torch.optim.SGD(self.q.parameters(), lr = 0.01,momentum = 0.9)
         self.optim.zero_grad()
         
-    def learnq(self,batch):
+    def learnq(self,batch, gamma):
         
+        self.optim.zero_grad()
         num_in_rep = self.repmem.chk_num_sample()
         min_batch = np.min(np.array([batch, num_in_rep]))
         
@@ -89,8 +90,15 @@ class DQN:
         samples = self.repmem.draw_sample(min_batch)
         
         sample_torch = torch.tensor(np.array(samples))
+        sample_torch.to('cuda')
         
-        
+        #find target
+        y = sample_torch[:,3] + gamma*(self.greedy(np.array(sample_torch[:,4:6])))*sample_torch[:,-1]
+        input = self.q(torch.FloatTensor(sample_torch[:,0:2]))[:,sample_torch[:,2]]
+        loss = torch.nn.MSELoss()
+        output = loss(input,y)
+        output.backward()
+        self.optim.step()
         
         return
         
@@ -100,26 +108,30 @@ class DQN:
             act = random.randint(0,3)
             #print(act)
         else:
-            print(curr_state)
+            #print(curr_state)
             with torch.no_grad():
-                q_curr_state = self.q(torch.tensor(np.array([curr_state])))
+                q_curr_state = self.q(torch.FloatTensor(np.array([curr_state])))
             #print(q_curr_state.shape)
                 act = np.argmax(q_curr_state)
         return act
     
-    def greedy(self,curr_state):
-        
-        print(curr_state)
+    def greedy(self, curr_state):
+        #print(curr_state)
         with torch.no_grad():
-            q_curr_state = self.qtarget(torch.tensor(np.array([curr_state])))
+            q_curr_state = self.qtarget(torch.FloatTensor(curr_state))
             #print(q_curr_state.shape)
-            act = np.argmax(q_curr_state)
-        
-        return act
+            act_value = np.max(q_curr_state)
+        return act_value
     
-    def upload_mem(self, s,a,r,s1,a1):
-        self.repmem.push(s,a,r,s1,a1)
+    
+    def upload_mem(self, s,a,r,s1,es):
+        self.repmem.push(s[0],s[1],a,r,s1[0],s1[1], es)
         
+        
+    def find_best_path(self, starting_state):
+        best_path = np.argmax(self.Q, axis = 2)
+
+        return best_path
         
         
         

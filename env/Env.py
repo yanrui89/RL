@@ -33,7 +33,9 @@ class cliff_env:
                 self.curr_reward = self.norm_reward
                 
 
-    
+    def check_endstate_2 (self):
+        rch_goal = (self.curr_state == self.end_state).all()
+        return not rch_goal
 
     def action(self, act):
         x = self.curr_state[0]
@@ -61,6 +63,7 @@ class cliff_env:
         self.end = 0
         self.acc_reward = 0
         self.curr_reward = 0
+        self.visited_states = np.zeros((self.height, self.length))
         
 
 
