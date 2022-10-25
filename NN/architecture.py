@@ -1,6 +1,7 @@
-#import torch
-#from torch import nn
+import torch
+from torch import nn
 import collections
+from collections import OrderedDict
 import random
 
 class MLP(nn.Module):
@@ -35,3 +36,25 @@ class memrep:
     def chk_num_sample(self):
         
         return len(self.mem)
+
+class PolicyNet(nn.Module):
+
+    def __init__(self, num_states, num_actions):
+        self.num_states = num_states
+        self.num_actions = num_actions
+        self._create_network()
+
+    def _create_network(self):
+        self.polnet = nn.Sequential(OrderedDict([
+            ('layer1', nn.Linear(self.num_states, 24)),
+            ('relu1', nn.ReLU()),
+            ('Layer2', nn.Linear(24,24)),
+            ('relu2', nn.ReLU()),
+            ('Layer3', nn.Linear(24, self.num_actions)),
+            ('softmax', nn.Softmax())
+        ]))
+
+    def forward(self, x):
+        output = self.polnet(x)
+
+        return output

@@ -2,6 +2,7 @@ import numpy as np
 import gym
 import algo
 import random
+import NN
 
 
 def get_discrete_state(s, bins, len_state_space):
@@ -65,8 +66,9 @@ def main():
     env.observation_space.low[3] = -4
     env.observation_space.high[1] = 4
     env.observation_space.high[3] = 4
+
+
     len_state_space = len(env.observation_space.high)
-    
     qlearn_params = {'gamma':0.99,
                     'alpha':0.1,
                     'epsilon': 1,
