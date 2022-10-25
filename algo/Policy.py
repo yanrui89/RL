@@ -1,20 +1,20 @@
 import numpy as np
 import random
 import copy
-import NN
-import torch
+#import NN
+#import torch
 
 class sarsa:
-    def __init__(self, h, l):
-        self.Q = self.init_Q(h,l)
-        self.prevQ = self.init_Q(h,l) + 1
+    def __init__(self, h, l, a=4):
+        self.Q = self.init_Q(h,l,a)
+        self.prevQ = self.init_Q(h,l,a) + 1
         self.converge = 0
         self.max_diff_Q = 0
         
 
 
-    def init_Q(self,h, l):
-        Q = np.zeros((h, l, 4))
+    def init_Q(self,h, l,a):
+        Q = np.zeros((h, l, a))
         return Q
     
     
@@ -51,8 +51,8 @@ class sarsa:
 
 class q_learning(sarsa):
 
-    def __init__(self,h, l):
-        super().__init__(h,l)
+    def __init__(self,h, l, a=4):
+        super().__init__(h,l,a)
 
     def greedy(self, curr_state):
 
@@ -68,7 +68,7 @@ class q_learning(sarsa):
         update = self.Q[curr_state[0], curr_state[1],curr_act] + alpha*td_error
         self.Q[curr_state[0], curr_state[1],curr_act] = update
         
-        
+'''
 class DQN:
     
     def __init__(self):
@@ -134,5 +134,5 @@ class DQN:
         return best_path
         
         
-        
+'''       
     
