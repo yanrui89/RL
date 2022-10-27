@@ -40,19 +40,22 @@ class memrep:
 class PolicyNet(nn.Module):
 
     def __init__(self, num_states, num_actions):
+        super().__init__()
         self.num_states = num_states
         self.num_actions = num_actions
         self._create_network()
 
     def _create_network(self):
         self.polnet = nn.Sequential(OrderedDict([
-            ('layer1', nn.Linear(self.num_states, 24)),
+            ('layer1', nn.Linear(self.num_states, 64)),
             ('relu1', nn.ReLU()),
-            ('Layer2', nn.Linear(24,24)),
-            ('relu2', nn.ReLU()),
-            ('Layer3', nn.Linear(24, self.num_actions)),
+            ('Layer3', nn.Linear(64, self.num_actions)),
             ('softmax', nn.Softmax())
         ]))
+
+
+    
+
 
     def forward(self, x):
         output = self.polnet(x)
