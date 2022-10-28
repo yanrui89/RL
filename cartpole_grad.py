@@ -16,7 +16,7 @@ def initialize_weights(m):
         torch.nn.init.normal_(m.weight, 1.0, 0.02)
         torch.nn.init.zeros_(m.bias)
 
-def main():
+def main(training_method):
 
     # Make cartpole environment
     env = gym.make('CartPole-v1')
@@ -51,6 +51,7 @@ def main():
                     'action': []}
         traj_len =0
         PolNet.eval()
+        output_sum = 0
         while not done:
             #rollout policy using network inference
             #print(curr_state)
@@ -75,29 +76,57 @@ def main():
             else:
                 traj_dict['dis_r'][i] = traj_dict['reward'][i] + policygrad_params['gamma'] * traj_dict['dis_r'][i+1]
 
-        opt.zero_grad()
         PolNet.train()
 
         #Start Training
-        output_tot = 0
-        for i in range(traj_len):
-            s = traj_dict['state'][i]
-            dis_r = traj_dict['dis_r'][i]
-            a_label = traj_dict['action'][i]
+        
+        if training_method =='reinforce':
+            output_tot = 0
+            for j in range(traj_len):
+                s = traj_dict['state'][j]
+                dis_r = traj_dict['dis_r'][j]
+                a_label = traj_dict['action'][j]
 
-            #inference
-            act = PolNet(torch.Tensor(s))
-            '''
-            action_dist = Categorical(act)
-            log_probs = -action_dist.log_prob(a_label) 
-            '''
-            log_probs = -loss(act, a_label)
-            output = log_probs * dis_r
+                #inference
+                act = PolNet(torch.Tensor(s))
+                
+                action_dist = Categorical(act)
+                log_probs = -action_dist.log_prob(a_label) 
+                
+                #log_probs = -loss(act, a_label)
+                output = log_probs * dis_r
 
-            output_tot += output
+                output_tot += output
 
-        output_tot.backward()
-        opt.step()
+            opt.zero_grad()
+            output_tot.backward()
+            opt.step()
+
+        elif training_method == 'vpg':
+            output_tot = 0
+            for j in range(traj_len):
+                s = traj_dict['state'][j]
+                dis_r = traj_dict['dis_r'][j]
+                a_label = traj_dict['action'][j]
+
+                #inference
+                act = PolNet(torch.Tensor(s))
+                
+                action_dist = Categorical(act)
+                log_probs = -action_dist.log_prob(a_label) 
+                
+                #log_probs = -loss(act, a_label)
+                #output = log_probs * dis_r
+
+                output_tot += log_probs
+            output_tot = output_tot * traj_dict['dis_r'][0]
+            output_sum += output_tot
+
+            if i%10 == 0:
+                opt.zero_grad()
+                output_sum.backward()
+                opt.step()
+                output_sum = 0
     
         rew_array = np.sum(np.array(traj_dict['reward']))
 
@@ -107,4 +136,5 @@ def main():
 
 if __name__== "__main__":
 
-    main()
+    training_method= 'vpg'
+    main(training_method)
